@@ -55,13 +55,25 @@ fig = px.scatter(
     title="Tariff Events and Industrial Import Exposure"
 )
 st.plotly_chart(fig)
-# Time series plot of dollar impact
-impact_over_time = filtered_df.groupby("Date")["Dollar Impact(Billions)"].sum().reset_index()
+# Country filter for the time series chart
+country_options = filtered_df["Country"].unique()
+selected_countries = st.multiselect(
+    "Select Countries for Dollar Impact Chart",
+    options=country_options,
+    default=list(country_options)
+)
+
+# Filter data by selected countries
+country_filtered_df = filtered_df[filtered_df["Country"].isin(selected_countries)]
+
+# Group and plot
+impact_over_time = country_filtered_df.groupby(["Date", "Country"])["Dollar Impact(Billions)"].sum().reset_index()
 impact_fig = px.line(
     impact_over_time,
     x="Date",
     y="Dollar Impact(Billions)",
-    title="Estimated Dollar Impact to Industrials Over Time"
+    color="Country",
+    title="Estimated Dollar Impact to Industrials Over Time by Country"
 )
 st.plotly_chart(impact_fig)
 
