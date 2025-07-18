@@ -50,8 +50,7 @@ fig = px.scatter(
     filtered_df,
     x="Date",
     y="Import Share (%)",
-    color="Country",
-    size="Dollar Impact (Billions", size_max=60,
+    color="Country", color_max=60,
     hover_data=["Event", "Impact"],
     title="Tariff Events and Industrial Import Exposure"
 )
