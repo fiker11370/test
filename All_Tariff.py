@@ -1,7 +1,5 @@
 import pandas as pd
 import streamlit as st
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # Set Streamlit page config
 st.set_page_config(page_title="Tariff Actions Dashboard", layout="wide")
@@ -54,22 +52,17 @@ st.dataframe(filtered_df.sort_values("Date")[["Date", "Action", "Type"]])
 
 # Plot: Actions by Type
 st.subheader("📌 Number of Tariff Actions by Type")
-fig1, ax1 = plt.subplots()
-sns.countplot(data=filtered_df, x="Type", order=filtered_df["Type"].value_counts().index, ax=ax1, palette="Set2")
-st.pyplot(fig1)
+type_counts = filtered_df["Type"].value_counts()
+st.bar_chart(type_counts)
 
 # Plot: Affected Industries
 st.subheader("🏭 Affected Industries")
 industry_series = filtered_df["Affected Industries"].dropna().str.split(", ").explode()
 industry_counts = industry_series.value_counts()
-fig2, ax2 = plt.subplots()
-sns.barplot(x=industry_counts.values, y=industry_counts.index, ax=ax2, palette="Set3")
-st.pyplot(fig2)
+st.bar_chart(industry_counts)
 
 # Plot: Targeted Countries
 st.subheader("🌍 Targeted Countries/Regions")
 target_series = filtered_df["Target"].dropna().str.split(", ").explode()
 target_counts = target_series.value_counts()
-fig3, ax3 = plt.subplots()
-sns.barplot(x=target_counts.values, y=target_counts.index, ax=ax3, palette="Set1")
-st.pyplot(fig3)
+st.bar_chart(target_counts)
