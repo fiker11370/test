@@ -1,8 +1,12 @@
 import pandas as pd
-import matplotlib.pyplot as plt
+import streamlit as st
 import seaborn as sns
+import matplotlib.pyplot as plt
 
-# Create a DataFrame with all the tariff actions
+# Set Streamlit page config
+st.set_page_config(page_title="Tariff Actions Dashboard", layout="wide")
+
+# Data
 data = [
     ["Jan 20, 2025", "Announced 25% tariffs on Canada and Mexico", "Canada, Mexico", "Threat", 25, "Consumer Products, Industrials"],
     ["Jan 20, 2025", "Proposed 10% tariff on all Chinese imports", "China", "Threat", 10, "Tech, Media & Telecommunications, Consumer Products, Industrials"],
@@ -28,56 +32,44 @@ data = [
     ["Aug 1, 2025", "Scheduled new tariffs: 25% on Japan & South Korea, up to 50% on others", "Japan, South Korea, others", "Threat", 50, "Tech, Media & Telecommunications, Consumer Products, Industrials"]
 ]
 
-# Create the DataFrame
+# Create DataFrame
 df = pd.DataFrame(data, columns=["Date", "Action", "Target", "Type", "Percentage", "Affected Industries"])
 df["Date"] = pd.to_datetime(df["Date"])
 
-# Summary statistics
-type_counts = df["Type"].value_counts()
-average_tariff = df["Percentage"].dropna().mean()
+# Sidebar filters
+st.sidebar.header("Filters")
+selected_type = st.sidebar.multiselect("Select Action Type", df["Type"].unique(), default=df["Type"].unique())
 
-print("Summary Statistics:")
-print("Number of Tariff Actions by Type:")
-print(type_counts)
-print(f"\nAverage Tariff Percentage (excluding None): {average_tariff:.2f}%")
+# Filtered DataFrame
+filtered_df = df[df["Type"].isin(selected_type)]
 
-# Timeline of actions
-df_sorted = df.sort_values("Date")
-print("\nTimeline of Tariff Actions:")
-print(df_sorted[["Date", "Action", "Type"]])
+# Summary
+st.title("📊 Tariff Actions Dashboard")
+st.markdown(f"**Total Actions:** {len(filtered_df)}")
+st.markdown(f"**Average Tariff (excluding None):** {filtered_df['Percentage'].dropna().mean():.2f}%")
 
-# Visualization: Number of actions by type
-plt.figure(figsize=(8, 5))
-sns.countplot(data=df, x="Type", order=type_counts.index, palette="Set2")
-plt.title("Number of Tariff Actions by Type")
-plt.xlabel("Action Type")
-plt.ylabel("Count")
-plt.tight_layout()
-plt.savefig("tariff_actions_by_type.png")
-plt.close()
+# Timeline
+st.subheader("🕒 Timeline of Tariff Actions")
+st.dataframe(filtered_df.sort_values("Date")[["Date", "Action", "Type"]])
 
-# Visualization: Affected industries
-industry_series = df["Affected Industries"].dropna().str.split(", ").explode()
+# Plot: Actions by Type
+st.subheader("📌 Number of Tariff Actions by Type")
+fig1, ax1 = plt.subplots()
+sns.countplot(data=filtered_df, x="Type", order=filtered_df["Type"].value_counts().index, ax=ax1, palette="Set2")
+st.pyplot(fig1)
+
+# Plot: Affected Industries
+st.subheader("🏭 Affected Industries")
+industry_series = filtered_df["Affected Industries"].dropna().str.split(", ").explode()
 industry_counts = industry_series.value_counts()
+fig2, ax2 = plt.subplots()
+sns.barplot(x=industry_counts.values, y=industry_counts.index, ax=ax2, palette="Set3")
+st.pyplot(fig2)
 
-plt.figure(figsize=(10, 6))
-sns.barplot(x=industry_counts.values, y=industry_counts.index, palette="Set3")
-plt.title("Affected Industries by Tariff Actions")
-plt.xlabel("Number of Mentions")
-plt.ylabel("Industry")
-plt.tight_layout()
-plt.savefig("affected_industries.png")
-plt.close()
-
-# Visualization: Targeted countries/regions
-target_series = df["Target"].dropna().str.split(", ").explode()
+# Plot: Targeted Countries
+st.subheader("🌍 Targeted Countries/Regions")
+target_series = filtered_df["Target"].dropna().str.split(", ").explode()
 target_counts = target_series.value_counts()
-
-plt.figure(figsize=(10, 6))
-sns.barplot(x=target_counts.values, y=target_counts.index, palette="Set1")
-plt.title("Targeted Countries/Regions by Tariff Actions")
-plt.xlabel("Number of Mentions")
-plt.ylabel("Country/Region")
-plt.tight_layout()
-plt.savefig("targeted_countries.png")
-plt.close()
+fig3, ax3 = plt.subplots()
+sns.barplot(x=target_counts.values, y=target_counts.index, ax=ax3, palette="Set1")
+st.pyplot(fig3)
